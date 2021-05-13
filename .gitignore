@@ -1,5 +1,9 @@
 # MacOS related files
 .DS_Store
+
+# Dataset related
+FashionMNIST/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
