@@ -1,9 +1,9 @@
 import random
 from warnings import filterwarnings
 import numpy as np
-import DistanceLoss from losses
-import get_embeddings from embeddings
-import compression_measure, accuracy_measure from measures
+from losses import DistanceLoss
+from embeddings import get_embeddings
+from measures import accuracy_measure, compression_measure
 def initializer(base_model, pool_size):    
     init_pool = []
     #TODO: create pool of initial children using the SVM technique THIJME
