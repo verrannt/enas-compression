@@ -20,6 +20,6 @@ def get_embeddings(batch, network, layers):
 
     embeddings = []
     for subnet in subnets:
-        embeddings.append(sub_net1(batch).detach().numpy())
+        embeddings.append(subnet(batch).detach().numpy())
 
     return embeddings

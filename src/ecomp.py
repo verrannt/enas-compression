@@ -3,7 +3,7 @@ from warnings import filterwarnings
 import numpy as np
 import DistanceLoss from losses
 import get_embeddings from embeddings
-
+import compression_measure, accuracy_measure from measures
 def initializer(base_model, pool_size):    
     init_pool = []
     #TODO: create pool of initial children using the SVM technique THIJME
@@ -18,11 +18,12 @@ def mutator(pop, p_mut):
         new_pop.append(model)        
     return new_pop()
 
-def calc_fitnesses(base_networks, base_embeddings, pool, dist, data):
+def calc_fitnesses(base_networks, base_embeddings, pool, dist, dataset):
+    batch_data, batch_labels = dataset
     fitnesses = []
     for model in pool:
         embedding_layers = ["1", "2"] #TODO: ????? PASCAL
-        model_embeddings = get_embeddings(data, model, embedding_layers) #TODO: implement calculate_embedding PASCAL
+        model_embeddings = get_embeddings(batch_data, model, embedding_layers) #TODO: implement calculate_embedding PASCAL
         loss = dist(base_embeddings, model_embeddings) #TODO: fix loss function to list of embeddings PASCAL
         accuracy_measure = None #TODO: pass validation set, predict it and normalize it STIJN
         compression_measure = None #TODO: calculate % of size compared to parent network STIJN
@@ -51,10 +52,10 @@ def selector_and_breeder(pop_fitnesses_zipped, mating_pool_size):
 def main(base_network, max_iter, pop_size, p_mut, validation_dataset):
     dist = DistanceLoss()
     embedding_layers = ["1", "2"] #TODO: ????? PASCAL
-    base_embeddings = get_embeddings(validation_dataset, base_network, embedding_layers)
+    batch_data, _ = validation_dataset #TODO: watch out with this
+    base_embeddings = get_embeddings(batch_data, base_network, embedding_layers)
     
     avg_fitnesses = []
-    
     init_pop = initializer(base_network, pop_size)
     pop_fitnesses = calc_fitnesses(base_network, base_embeddings, init_pop, dist, validation_dataset)
     pop, fitnesses = zip(*pop_fitnesses)
