@@ -2,6 +2,7 @@ import random
 from warnings import filterwarnings
 import numpy as np
 from losses import DistanceLoss
+from recombiner import Recombiner
 from embeddings import get_embeddings
 from measures import accuracy_measure, compression_measure
 def initializer(base_model, pool_size):    
@@ -33,11 +34,7 @@ def calc_fitnesses(base_networks, base_embeddings, pool, dist, dataset):
     pool_fitnesses_zipped = list(zip(pool, fitnesses))
     return pool_fitnesses_zipped
 
-def crossover(parent1, parent2):
-    child = None #TODO: implement cross-over THIJME / PASCAL
-    return child
-
-def selector_and_breeder(pop_fitnesses_zipped, mating_pool_size):
+def selector_and_breeder(pop_fitnesses_zipped, mating_pool_size, recombiner):
     pop, fitnesses = zip(*pop_fitnesses_zipped)
     mating_pool = np.random.choice(pop, mating_pool_size, fitnesses)
     np.random.shuffle(mating_pool)
@@ -45,12 +42,15 @@ def selector_and_breeder(pop_fitnesses_zipped, mating_pool_size):
     while len(mating_pool > 1):
         n1 = mating_pool.pop()
         n2 = mating_pool.pop()
-        nc1, nc2 = crossover(n1, n2)
+        # recombiner does the crossover
+        nc1, nc2 = recombiner(n1, n2)
+        #TODO: Do we need to select before adding to new pop?
         new_pop.append(nc1)
         new_pop.append(nc2)
 
 def main(base_network, max_iter, pop_size, p_mut, validation_dataset):
     dist = DistanceLoss()
+    recomb = Recombiner()
     embedding_layers = ["1", "2"] #TODO: ????? PASCAL
     batch_data, _ = validation_dataset #TODO: watch out with this
     base_embeddings = get_embeddings(batch_data, base_network, embedding_layers)
@@ -65,7 +65,7 @@ def main(base_network, max_iter, pop_size, p_mut, validation_dataset):
     best_n = pop[best_i]
     i = 0
     while i < max_iter: #TODO: specify more convergence criteria
-        pop = selector_and_breeder(pop_fitnesses, pop_size)
+        pop = selector_and_breeder(pop_fitnesses, pop_size, recomb)
         pop = mutator(pop, p_mut)
         pop_fitnesses = calc_fitnesses(base_network, base_embeddings, pop, dist, validation_dataset)
         pop, fitnesses = zip(*pop_fitnesses)
