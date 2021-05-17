@@ -1,5 +1,6 @@
-import torch_pruning as tp
 import copy
+import torch
+import torch_pruning as tp
 
 class Initialiser():
     """

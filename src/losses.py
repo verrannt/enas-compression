@@ -24,7 +24,7 @@ class DistanceLoss():
             "X and Y have to be of equal length."
 
         # Accumulate the error of every embedding layer
-        total_err = 0
+        err = 0
 
         # Iterate through embeddings
         for i in range(len(X)):
