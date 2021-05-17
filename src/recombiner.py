@@ -1,7 +1,8 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-
+from torch import nn
+import random 
 class Recombiner():
     """
     Enables recombination of 2 parents into two children
