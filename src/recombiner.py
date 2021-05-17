@@ -72,7 +72,7 @@ class Recombiner():
 
     def create_child(self, weights, biases):
         # randomly initiate child of correct size
-        child = self.getNeuralNet(nr_of_inputs, biases[0].shape[0], nr_of_outputs)
+        child = self.getNeuralNet(n_hidden=biases[0].shape[0])
         # copy over weights and biases
         for index, layer in enumerate([1, 3, 5]):
             with torch.no_grad():
