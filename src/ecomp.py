@@ -3,11 +3,14 @@ from warnings import filterwarnings
 import numpy as np
 from losses import DistanceLoss
 from recombiner import Recombiner
+from initialiser import Initialiser
 from embeddings import get_embeddings
 from measures import accuracy_measure, compression_measure
-def initializer(base_model, pool_size):    
+
+def initialise(initialiser, base_model, pool_size, compression_min=0.1, compression_max = 0.8):
     init_pool = []
-    #TODO: create pool of initial children using the SVM technique THIJME
+    for compression_rate in np.arange(compression_min, compression_max, ((compression_max-compression_min)/pool_size)):
+        init_pool.append(initialiser(base_model, compression_rate))
     return init_pool
 
 def mutator(pop, p_mut):
@@ -51,12 +54,13 @@ def selector_and_breeder(pop_fitnesses_zipped, mating_pool_size, recombiner):
 def main(base_network, max_iter, pop_size, p_mut, validation_dataset):
     dist = DistanceLoss()
     recomb = Recombiner()
+    initialiser = Initialiser()
     embedding_layers = ["1", "2"] #TODO: ????? PASCAL
     batch_data, _ = validation_dataset #TODO: watch out with this
     base_embeddings = get_embeddings(batch_data, base_network, embedding_layers)
     
     avg_fitnesses = []
-    init_pop = initializer(base_network, pop_size)
+    init_pop = initialise(initialiser, base_network, pop_size)
     pop_fitnesses = calc_fitnesses(base_network, base_embeddings, init_pop, dist, validation_dataset)
     pop, fitnesses = zip(*pop_fitnesses)
     best_i = np.argmax(fitnesses)
