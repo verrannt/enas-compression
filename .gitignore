@@ -1,6 +1,9 @@
 # MacOS related files
 .DS_Store
 
+# VSCode related files
+.vscode
+
 # Dataset related
 FashionMNIST/
 
