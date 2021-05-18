@@ -2,47 +2,54 @@ import random
 from warnings import filterwarnings
 import numpy as np
 from losses import DistanceLoss
+from mutation import NetworkMutation
 from recombiner import Recombiner
 from initialiser import Initialiser
 from embeddings import get_embeddings
 from measures import accuracy_measure, compression_measure
 
-def initialise(initialiser, base_model, pool_size, compression_min=0.1, compression_max = 0.8):
+def softmax(x):
+    f_x = np.exp(x) / np.sum(np.exp(x))
+    return f_x
+
+def initialise(
+    initialiser, 
+    base_model, 
+    pool_size, 
+    compression_min=0.1, 
+    compression_max = 0.8
+):
     init_pool = []
-    for compression_rate in np.arange(compression_min, compression_max, ((compression_max-compression_min)/pool_size)):
+    for compression_rate in np.arange(
+                                compression_min, 
+                                compression_max, 
+                                ((compression_max-compression_min)/pool_size)
+                            ):
         init_pool.append(initialiser(base_model, compression_rate))
     return init_pool
 
-def mutator(pop, p_mut):
-    new_pop = []
-    for model in pop:
-        if random.random() < p_mut:
-            mutated_model = None #TODO: mutate the model ??
-            model = mutated_model
-        new_pop.append(model)        
-    return new_pop()
-
-def calc_fitnesses(base_embeddings, pool, dist, dataset, base_size):
-    batch_data, batch_labels = dataset
+def calc_fitnesses(base_embeddings, pool, dist, dataset, base_size, emb_layers):
+    batch_data, batch_labels = dataset[0], dataset[1]
     fitnesses = []
     for model in pool:
-        embedding_layers = ["1", "2"] #TODO: ????? PASCAL
-        model_embeddings = get_embeddings(batch_data, model, embedding_layers)
-        loss = dist(base_embeddings, model_embeddings) 
-        accuracy_measure = accuracy_measure(model, batch_data, batch_labels)
-        compression_measure = compression_measure(model, base_size)
-        a, b, c = 1
-        fitness = a * loss + b * accuracy_measure + c * compression_measure #TODO: calculate fitness ??
+        model_embeddings = get_embeddings(batch_data, model, emb_layers)
+        loss = dist(base_embeddings, model_embeddings)
+        accuracy = accuracy_measure(model, batch_data, batch_labels)
+        compression = compression_measure(model, base_size)
+        a, b, c = 1, 1, 1
+        fitness = a * accuracy + b * (1-loss) + c * compression #TODO: calculate fitness ??
         fitnesses.append(fitness)
-    pool_fitnesses_zipped = list(zip(pool, fitnesses))
-    return pool_fitnesses_zipped
+    #pool_fitnesses_zipped = list(zip(pool, fitnesses))
+    return fitnesses
 
-def selector_and_breeder(pop_fitnesses_zipped, mating_pool_size, recombiner):
-    pop, fitnesses = zip(*pop_fitnesses_zipped)
-    mating_pool = np.random.choice(pop, mating_pool_size, fitnesses)
-    np.random.shuffle(mating_pool)
+def selector_and_breeder(pop, fitnesses, mating_pool_size, recombiner):
+    #pop, fitnesses = zip(*pop_fitnesses_zipped)
+    mating_idx = np.random.choice(
+        range(len(pop)), mating_pool_size, p=softmax(fitnesses), replace=True)
+    np.random.shuffle(mating_idx)
+    mating_pool = [pop[i] for i in mating_idx]
     new_pop = []
-    while len(mating_pool > 1):
+    while len(mating_pool) > 1:
         n1 = mating_pool.pop()
         n2 = mating_pool.pop()
         # recombiner does the crossover
@@ -52,29 +59,58 @@ def selector_and_breeder(pop_fitnesses_zipped, mating_pool_size, recombiner):
         new_pop.append(nc2)
     return new_pop
 
-def main(base_network, max_iter, pop_size, p_mut, validation_dataset):
+def run_evolution(
+    base_network, 
+    max_iter, 
+    pop_size, 
+    p_mut, 
+    emb_layers,
+    recomb_layers,
+    n_inputs,
+    n_outputs,
+    validation_dataset,
+):
+
     dist = DistanceLoss()
-    recomb = Recombiner()
+    recomb = Recombiner(recomb_layers, n_inputs, n_outputs)
     initialiser = Initialiser()
-    embedding_layers = ["1", "2"] #TODO: ????? PASCAL derive this
-    batch_data, _ = validation_dataset #TODO: watch out with this
-    base_embeddings = get_embeddings(batch_data, base_network, embedding_layers)
+    mutator = NetworkMutation(recomb_layers, p_mut)
+
+    # Get images from the dataset, ignore labels here
+    batch_data, _ = validation_dataset
+    # Get embeddings of base network
+    base_embeddings = get_embeddings(batch_data, base_network, emb_layers)
+    # Get total number of trainable parameters for base network
     base_size = sum(p.numel() for p in base_network.parameters() if p.requires_grad)
 
     avg_fitnesses = []
-    init_pop = initialise(initialiser, base_network, pop_size)
-    pop_fitnesses = calc_fitnesses(base_network, base_embeddings, init_pop, dist, validation_dataset)
-    pop, fitnesses = zip(*pop_fitnesses)
+    pop = initialise(initialiser, base_network, pop_size)
+    fitnesses = calc_fitnesses(
+        base_embeddings, 
+        pop, 
+        dist, 
+        validation_dataset, 
+        base_size, 
+        emb_layers
+    )
+    #pop, fitnesses = zip(*pop_fitnesses)
     best_i = np.argmax(fitnesses)
     best_f = fitnesses[best_i]
     avg_fitnesses.append(np.average(fitnesses))
     best_n = pop[best_i]
     i = 0
     while i < max_iter: #TODO: specify more convergence criteria
-        pop = selector_and_breeder(pop_fitnesses, pop_size, recomb)
-        pop = mutator(pop, p_mut)
-        pop_fitnesses = calc_fitnesses(base_embeddings, pop, dist, validation_dataset, base_size)
-        pop, fitnesses = zip(*pop_fitnesses)
+        print(f"Iteration {i+1}/{max_iter}\r", end='')
+        pop = selector_and_breeder(pop, fitnesses, pop_size, recomb)
+        pop = mutator(pop)
+        fitnesses = calc_fitnesses(
+            base_embeddings, 
+            pop, 
+            dist, 
+            validation_dataset, 
+            base_size, 
+            emb_layers
+        )
         best_i = np.argmax(fitnesses)
         best_f = fitnesses[best_i]
         avg_fitnesses.append(np.average(fitnesses))

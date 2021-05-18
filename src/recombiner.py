@@ -3,52 +3,49 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 import random 
+
+from models import getSimpleNeuralNet
+
 class Recombiner():
     """
     Enables recombination of 2 parents into two children
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, layer_names, n_inputs, n_outputs):
+        self.layer_names = layer_names
+        self.n_inputs = n_inputs
+        self.n_outputs = n_outputs
 
     def __call__(self, parent1, parent2):
-        layer_weights_1, layer_weights_2, layer_biases_1, layer_biases_2 = self.recombine(parent1, parent2)
+        layer_weights_1, layer_weights_2, layer_biases_1, layer_biases_2 = \
+            self.recombine(parent1, parent2)
         child1 = self.create_child(layer_weights_1, layer_biases_1)
         child2 = self.create_child(layer_weights_2, layer_biases_2)
         return child1, child2
 
-    def getNeuralNet(self, dim_num=784, n_hidden=256, n_classes=10):
-        return nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(dim_num, n_hidden),
-            nn.ReLU(),
-            # nn.Dropout(.1),
-            nn.Linear(n_hidden, n_hidden),
-            nn.ReLU(),
-            # nn.Dropout(.1),
-            nn.Linear(n_hidden, n_classes)
-        )
-
-    def recombine(self, parent1, parent2, nr_of_inputs, nr_of_outputs):
+    def recombine(self, parent1, parent2):
         # storage for child networks
         layer_weights_1 = []
         layer_biases_1 = []
         layer_weights_2 = []
         layer_biases_2 = []
+        # Get dict of networks
+        parent1dict = dict(parent1.named_children())
+        parent2dict = dict(parent2.named_children())
         # check size of hidden layers
-        h_units_1 = parent1[1].weight.detach().numpy().shape[0]
-        h_units_2 = parent2[1].weight.detach().numpy().shape[0]
+        h_units_1 = parent1dict[self.layer_names[0]]\
+            .weight.detach().numpy().shape[0]
+        h_units_2 = parent2dict[self.layer_names[0]]\
+            .weight.detach().numpy().shape[0]
         # determine cutoff point
-        cutoff = random.randint(1, min(h_units_1, h_units_2, nr_of_inputs, nr_of_outputs))
-        # get nr_of_inputs, nr_of_outputs
-        nr_of_inputs, nr_of_outputs = None #TODO: ???? derive this
+        cutoff = random.randint(1, min(h_units_1, h_units_2, self.n_inputs, self.n_outputs))
         # loop over relevant layers
-        for layer in [1, 3, 5]: # change this for larger networks #TODO: derive this
+        for layer in self.layer_names:
             # get parent weights and biases
-            W1 = parent1[layer].weight.detach().numpy()
-            W2 = parent2[layer].weight.detach().numpy()
-            b1 = parent1[layer].bias.detach().numpy()
-            b2 = parent2[layer].bias.detach().numpy()
+            W1 = parent1dict[layer].weight.detach().numpy()
+            W2 = parent2dict[layer].weight.detach().numpy()
+            b1 = parent1dict[layer].bias.detach().numpy()
+            b2 = parent2dict[layer].bias.detach().numpy()
             # determine parts to keep
             Keep1 = W1[:cutoff, :cutoff]
             Keep2 = W2[:cutoff, :cutoff]
@@ -74,9 +71,9 @@ class Recombiner():
 
     def create_child(self, weights, biases):
         # randomly initiate child of correct size
-        child = self.getNeuralNet(n_hidden=biases[0].shape[0])
+        child = getSimpleNeuralNet(n_hidden=biases[0].shape[0])
         # copy over weights and biases
-        for index, layer in enumerate([1, 3, 5]):
+        for index, layer in enumerate(self.layer_names):
             with torch.no_grad():
                 child[layer].weight.copy_(torch.tensor(weights[index], requires_grad=True))
                 child[layer].bias.copy_(torch.tensor(biases[index], requires_grad=True))
@@ -98,3 +95,10 @@ class Recombiner():
         WChild2 = np.concatenate((WChild2, SwapInputs1), 0)
         print(WChild1)
         print(WChild2)
+
+if __name__=='__main__':
+    # Call this file as a script for testing
+    net1 = getSimpleNeuralNet()
+    net2 = getSimpleNeuralNet()
+
+    recombiner = Recombiner()

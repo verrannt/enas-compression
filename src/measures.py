@@ -1,15 +1,14 @@
-from torch import nn
 import torch 
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
 def test_loop(data, labels, model):
+    #device = 'cuda' if torch.cuda.is_available() else 'cpu'
     correct = 0
     predictions = []
     with torch.no_grad():
-        for index, datapoint in enumerate(data):
+        # TODO Feed whole batch instead of iterating through it
+        # TODO May need to put on device?
+        for X, y in zip(data,labels):
             # Compute prediction and loss
-            X = torch.tensor(datapoint).type(torch.FloatTensor).to(device) #input
-            y = torch.tensor(labels[index, :]).type(torch.FloatTensor).to(device) #labels
             pred = model(X)
             predictions.append(pred)
             correct += (pred.argmax() == y.argmax()).type(torch.float).sum().item()
