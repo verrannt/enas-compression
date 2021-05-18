@@ -29,7 +29,7 @@ class Recombiner():
             nn.Linear(n_hidden, n_classes)
         )
 
-    def recombine(self, parent1, parent2):
+    def recombine(self, parent1, parent2, nr_of_inputs, nr_of_outputs):
         # storage for child networks
         layer_weights_1 = []
         layer_biases_1 = []
@@ -40,8 +40,10 @@ class Recombiner():
         h_units_2 = parent2[1].weight.detach().numpy().shape[0]
         # determine cutoff point
         cutoff = random.randint(1, min(h_units_1, h_units_2, nr_of_inputs, nr_of_outputs))
+        # get nr_of_inputs, nr_of_outputs
+        nr_of_inputs, nr_of_outputs = None #TODO: ???? derive this
         # loop over relevant layers
-        for layer in [1, 3, 5]:
+        for layer in [1, 3, 5]: # change this for larger networks #TODO: derive this
             # get parent weights and biases
             W1 = parent1[layer].weight.detach().numpy()
             W2 = parent2[layer].weight.detach().numpy()

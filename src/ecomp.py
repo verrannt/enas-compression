@@ -27,8 +27,8 @@ def calc_fitnesses(base_embeddings, pool, dist, dataset, base_size):
     fitnesses = []
     for model in pool:
         embedding_layers = ["1", "2"] #TODO: ????? PASCAL
-        model_embeddings = get_embeddings(batch_data, model, embedding_layers) #TODO: implement calculate_embedding PASCAL
-        loss = dist(base_embeddings, model_embeddings) #TODO: fix loss function to list of embeddings PASCAL
+        model_embeddings = get_embeddings(batch_data, model, embedding_layers)
+        loss = dist(base_embeddings, model_embeddings) 
         accuracy_measure = accuracy_measure(model, batch_data, batch_labels)
         compression_measure = compression_measure(model, base_size)
         a, b, c = 1
@@ -50,12 +50,13 @@ def selector_and_breeder(pop_fitnesses_zipped, mating_pool_size, recombiner):
         #TODO: Do we need to select before adding to new pop?
         new_pop.append(nc1)
         new_pop.append(nc2)
+    return new_pop
 
 def main(base_network, max_iter, pop_size, p_mut, validation_dataset):
     dist = DistanceLoss()
     recomb = Recombiner()
     initialiser = Initialiser()
-    embedding_layers = ["1", "2"] #TODO: ????? PASCAL
+    embedding_layers = ["1", "2"] #TODO: ????? PASCAL derive this
     batch_data, _ = validation_dataset #TODO: watch out with this
     base_embeddings = get_embeddings(batch_data, base_network, embedding_layers)
     base_size = sum(p.numel() for p in base_network.parameters() if p.requires_grad)
