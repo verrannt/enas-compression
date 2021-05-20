@@ -37,10 +37,16 @@ class Recombiner():
             .weight.detach().numpy().shape[0]
         h_units_2 = parent2dict[self.layer_names[0]]\
             .weight.detach().numpy().shape[0]
-        # determine cutoff point
-        cutoff = random.randint(1, min(h_units_1, h_units_2, self.n_inputs, self.n_outputs))
+
         # loop over relevant layers
         for layer in self.layer_names:
+            # determine cutoff point
+            if self.layer_names[-1] == layer:
+                cutoff = random.randint(1, min(h_units_1, h_units_2, self.n_outputs))
+            elif self.layer_names[0] == layer:
+                cutoff = random.randint(1, min(h_units_1, h_units_2, self.n_inputs))
+            else:
+                cutoff = random.randint(1, min(h_units_1, h_units_2))
             # get parent weights and biases
             W1 = parent1dict[layer].weight.detach().numpy()
             W2 = parent2dict[layer].weight.detach().numpy()
@@ -71,17 +77,19 @@ class Recombiner():
 
     def create_child(self, weights, biases):
         # randomly initiate child of correct size
-        child = getSimpleNeuralNet(n_hidden=biases[0].shape[0])
+        child = getSimpleNeuralNet(dim_num=self.n_inputs, n_hidden=biases[0].shape[0], n_classes=self.n_outputs)
+        child_list = list(dict(child.named_children()))
         # copy over weights and biases
         for index, layer in enumerate(self.layer_names):
+            layer_ind = child_list.index(layer)
             with torch.no_grad():
-                child[layer].weight.copy_(torch.tensor(weights[index], requires_grad=True))
-                child[layer].bias.copy_(torch.tensor(biases[index], requires_grad=True))
+                child[layer_ind].weight.copy_(torch.tensor(weights[index], requires_grad=True))
+                child[layer_ind].bias.copy_(torch.tensor(biases[index], requires_grad=True))
         return child
 
     def matrix_example(self, W1, W2):
         # just an example to show how the recombination works
-        cutoff = random.randint(1, min(W1.shape[0], W2.shape[0]))
+        cutoff = random.randint(1, min(W1.shape[0], W2.shape[0], W1.shape[1], W2.shape[1]))
         print(f'Cutoff is {cutoff}')
         Keep1 = W1[:cutoff, :cutoff]
         Keep2 = W2[:cutoff, :cutoff]
@@ -98,7 +106,8 @@ class Recombiner():
 
 if __name__=='__main__':
     # Call this file as a script for testing
-    net1 = getSimpleNeuralNet()
-    net2 = getSimpleNeuralNet()
+    net1 = getSimpleNeuralNet(dim_num=784, n_hidden=256, n_classes=10)
+    net2 = getSimpleNeuralNet(dim_num=784, n_hidden=256, n_classes=10)
 
-    recombiner = Recombiner()
+    recombiner = Recombiner(["layer_1_linear", "layer_2_linear", "output"], 784, 10)
+    child1, child2 = recombiner(net1, net2)
