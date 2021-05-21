@@ -36,7 +36,7 @@ if __name__=='__main__':
         MUTATION_RATE=0.01,
         EMB_LAYERS=["layer_1_act", "layer_2_act"],
         RECOMBINATION_LAYERS=["layer_1_linear", "layer_2_linear", "output"],
-        MAX_ITER=1000,
+        MAX_ITER=100,
     )
 
     best_n, best_f, avg_fitnesses = run_evolution(
