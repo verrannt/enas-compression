@@ -15,6 +15,18 @@ if __name__=='__main__':
         n_classes=n_classes,
     )
 
+    RETRAIN_BASE = True
+
+    if RETRAIN_BASE:
+        # Train base network
+        console.log('Training base network')
+        base_network = trainBaseNetwork(base_network, train_loader, val_loader)
+        torch.save(base_network.state_dict(), 'weights/base_weights.pth')
+    else:
+        # Load weights from storage
+        console.log('Loading base network from weights file')
+        base_network.load_state_dict(torch.load('weights/base_weights.pth'))
+
     configs = Configs(
         POP_SIZE=100,
         MUTATION_RATE=0.01,
