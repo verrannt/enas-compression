@@ -1,6 +1,7 @@
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor, Lambda
+from sampler import BalancedBatchSampler
 
 class FashionMNISTLoader():
 
@@ -27,13 +28,17 @@ class FashionMNISTLoader():
 
         train_dataloader = DataLoader(
             training_data, 
-            batch_size=64, 
-            shuffle=True
+            batch_size=100, 
+            # Shuffle is incompatible with BalancedBatchSampler
+            #shuffle=True,
+            sampler=BalancedBatchSampler(training_data, training_data.targets)
         )
         test_dataloader = DataLoader(
             test_data, 
-            batch_size=64, 
-            shuffle=True
+            batch_size=100, 
+            # Shuffle is incompatible with BalancedBatchSampler
+            #shuffle=True,
+            sampler=BalancedBatchSampler(test_data, test_data.targets)
         )
 
         dim_num = training_data[0][0].size()[1] * training_data[0][0].size()[2]

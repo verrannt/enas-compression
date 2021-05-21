@@ -10,7 +10,7 @@ console = Console()
 
 if __name__=='__main__':
 
-    _, val_loader, dim_num = FashionMNISTLoader.get()
+    train_loader, val_loader, dim_num = FashionMNISTLoader.get()
     n_classes = 10
 
     base_network = getSimpleNeuralNet(
