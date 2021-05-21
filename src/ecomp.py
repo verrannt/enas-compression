@@ -28,12 +28,12 @@ def initialise(
         init_pool.append(initialiser(base_model, compression_rate))
     return init_pool
 
-def calc_fitnesses(base_embeddings, pool, dist, dataset, base_size, emb_layers):
+def calc_fitnesses(base_embeddings, pool, loss_fn, dataset, base_size, emb_layers):
     batch_data, batch_labels = dataset[0], dataset[1]
     fitnesses = []
     for model in pool:
         model_embeddings = get_embeddings(batch_data, model, emb_layers)
-        loss = dist(base_embeddings, model_embeddings)
+        loss = loss_fn(model_embeddings[0])
         accuracy = accuracy_measure(model, batch_data, batch_labels)
         compression = compression_measure(model, base_size)
         a, b, c = 1, 1, 1
@@ -83,12 +83,16 @@ def run_evolution(
     # Get total number of trainable parameters for base network
     base_size = sum(p.numel() for p in base_network.parameters() if p.requires_grad)
 
+    # Initialize loss with base networks embeddings
+    # TODO right now only takes one layer
+    emb_loss = TSNELoss(base_embeddings[0])
+
     avg_fitnesses = []
     pop = initialise(initialiser, base_network, pop_size)
     fitnesses = calc_fitnesses(
         base_embeddings, 
         pop, 
-        dist, 
+        emb_loss, 
         validation_dataset, 
         base_size, 
         emb_layers
@@ -106,7 +110,7 @@ def run_evolution(
         fitnesses = calc_fitnesses(
             base_embeddings, 
             pop, 
-            dist, 
+            emb_loss, 
             validation_dataset, 
             base_size, 
             emb_layers
