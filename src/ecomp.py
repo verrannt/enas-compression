@@ -8,6 +8,7 @@ from initialiser import Initialiser
 from embeddings import get_embeddings
 from measures import accuracy_measure, compression_measure
 from utils import timer
+from tensorflow.keras.utils import Progbar
 
 def softmax(x):
     f_x = np.exp(x) / np.sum(np.exp(x))
@@ -31,17 +32,25 @@ def initialise(
 
 def calc_fitnesses(base_embeddings, pool, loss_fn, dataset, base_size, emb_layers):
     batch_data, batch_labels = dataset[0], dataset[1]
-    fitnesses = []
+    fitnesses, accuracies, losses = [], [], []
     for model in pool:
         model_embeddings = get_embeddings(batch_data, model, emb_layers)
         loss = loss_fn(model_embeddings[0])
         accuracy = accuracy_measure(model, batch_data, batch_labels)
         compression = compression_measure(model, base_size)
         a, b, c = 1, 1, 1
-        fitness = a * accuracy + b * (1-loss) + c * compression #TODO: calculate fitness ??
+        fitness = a * accuracy - b * loss + c * (1-compression) #TODO: calculate fitness ??
         fitnesses.append(fitness)
+        accuracies.append(accuracy)
+        losses.append(loss)
     #pool_fitnesses_zipped = list(zip(pool, fitnesses))
-    return fitnesses
+    avg_acc = np.average(accuracies)
+    best_acc = accuracies[np.argmax(accuracies)]
+    worst_acc = accuracies[np.argmin(accuracies)]
+    avg_loss = np.average(losses)
+    best_loss = losses[np.argmin(losses)]
+    worst_loss = losses[np.argmax(losses)]
+    return fitnesses, avg_acc, best_acc, worst_acc, avg_loss, best_loss, worst_loss
 
 def selector_and_breeder(pop, fitnesses, mating_pool_size, recombiner):
     #pop, fitnesses = zip(*pop_fitnesses_zipped)
@@ -91,7 +100,7 @@ def run_evolution(
 
     avg_fitnesses = []
     pop = initialise(initialiser, base_network, pop_size)
-    fitnesses = calc_fitnesses(
+    fitnesses, avg_acc, best_acc, worst_acc, avg_loss, best_loss, worst_loss = calc_fitnesses(
         base_embeddings, 
         pop, 
         emb_loss, 
@@ -105,11 +114,16 @@ def run_evolution(
     avg_fitnesses.append(np.average(fitnesses))
     best_n = pop[best_i]
     i = 0
+
+    pbar = Progbar(max_iter)
+
+    console.log('Starting optimization')
     while i < max_iter: #TODO: specify more convergence criteria
-        print(f"Iteration {i+1}/{max_iter}\r", end='')
+        #print(f"Iteration {i+1}/{max_iter}\r", end='')
         pop = selector_and_breeder(pop, fitnesses, pop_size, recomb)
         pop = mutator(pop)
-        fitnesses = calc_fitnesses(
+
+        fitnesses, avg_acc, best_acc, worst_acc, avg_loss, best_loss, worst_loss = calc_fitnesses(
             base_embeddings, 
             pop, 
             emb_loss, 
@@ -117,9 +131,27 @@ def run_evolution(
             base_size, 
             emb_layers
         )
+
         best_i = np.argmax(fitnesses)
         best_f = fitnesses[best_i]
-        avg_fitnesses.append(np.average(fitnesses))
+        
+        worst_i = np.argmin(fitnesses)
+        worst_f = fitnesses[worst_i]
+        
+        avg_fitness = np.average(fitnesses)
+        avg_fitnesses.append(avg_fitness)
+        
         best_n = pop[best_i]
         i += 1
+        pbar.update(i, [
+            ('Avg', avg_fitness), 
+            ('Best', best_f), 
+            ('Worst', worst_f), 
+            ('Avg Acc', avg_acc), 
+            ('Best Acc', best_acc), 
+            ('Worst Acc', worst_acc),
+            ('Avg Loss', avg_loss), 
+            ('Best Loss', best_loss), 
+            ('Worst Loss', worst_loss),
+        ])
     return best_n, best_f, avg_fitnesses

@@ -36,7 +36,7 @@ if __name__=='__main__':
         MAX_ITER=1000,
     )
 
-    run_evolution(
+    best_n, best_f, avg_fitnesses = run_evolution(
         base_network,
         max_iter=configs.MAX_ITER,
         pop_size=configs.POP_SIZE,
@@ -47,3 +47,5 @@ if __name__=='__main__':
         n_outputs=n_classes,
         validation_dataset=next(iter(val_loader))
     )
+
+    evaluateNetwork(best_n, val_loader)
