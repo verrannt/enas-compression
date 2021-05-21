@@ -9,6 +9,7 @@ from embeddings import get_embeddings
 from measures import accuracy_measure, compression_measure
 from utils import timer
 from tensorflow.keras.utils import Progbar
+from rich.console import Console
 
 def softmax(x):
     f_x = np.exp(x) / np.sum(np.exp(x))
@@ -82,11 +83,14 @@ def run_evolution(
     validation_dataset,
 ):
 
-    dist = DistanceLoss()
+    console = Console()
+
+    console.log('Initializing algorithm')
     recomb = Recombiner(recomb_layers, n_inputs, n_outputs)
     initialiser = Initialiser()
     mutator = NetworkMutation(recomb_layers, p_mut)
 
+    console.log('Computing embeddings')
     # Get images from the dataset, ignore labels here
     batch_data, _ = validation_dataset
     # Get embeddings of base network
@@ -94,12 +98,15 @@ def run_evolution(
     # Get total number of trainable parameters for base network
     base_size = sum(p.numel() for p in base_network.parameters() if p.requires_grad)
 
+    console.log('Initializing TSNE-based loss')
     # Initialize loss with base networks embeddings
     # TODO right now only takes one layer
     emb_loss = TSNELoss(base_embeddings[0])
 
     avg_fitnesses = []
+    console.log('Initializing population')
     pop = initialise(initialiser, base_network, pop_size)
+    console.log('Computing initial population fitness')
     fitnesses, avg_acc, best_acc, worst_acc, avg_loss, best_loss, worst_loss = calc_fitnesses(
         base_embeddings, 
         pop, 

@@ -4,6 +4,9 @@ from configs import Configs
 import torch
 from models import getSimpleNeuralNet, trainBaseNetwork, evaluateNetwork
 from data.fashion_mnist import FashionMNISTLoader
+from rich.console import Console
+
+console = Console()
 
 if __name__=='__main__':
 
