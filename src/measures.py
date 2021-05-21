@@ -14,7 +14,7 @@ def test_loop(data, labels, model):
             correct += (pred.argmax() == y.argmax()).type(torch.float).sum().item()
 
     correct /= len(data)
-    return 100*correct
+    return correct
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
