@@ -7,6 +7,7 @@ from recombiner import Recombiner
 from initialiser import Initialiser
 from embeddings import get_embeddings
 from measures import accuracy_measure, compression_measure
+from utils import timer
 
 def softmax(x):
     f_x = np.exp(x) / np.sum(np.exp(x))
@@ -59,6 +60,7 @@ def selector_and_breeder(pop, fitnesses, mating_pool_size, recombiner):
         new_pop.append(nc2)
     return new_pop
 
+@timer
 def run_evolution(
     base_network, 
     max_iter, 
