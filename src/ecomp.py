@@ -1,7 +1,7 @@
 import random
 from warnings import filterwarnings
 import numpy as np
-from losses import DistanceLoss
+from losses import DistanceLoss, TSNELoss
 from mutation import NetworkMutation
 from recombiner import Recombiner
 from initialiser import Initialiser

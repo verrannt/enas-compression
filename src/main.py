@@ -1,7 +1,8 @@
 from ecomp import run_evolution
 from configs import Configs
 
-from models import getSimpleNeuralNet
+import torch
+from models import getSimpleNeuralNet, trainBaseNetwork, evaluateNetwork
 from data.fashion_mnist import FashionMNISTLoader
 
 if __name__=='__main__':
