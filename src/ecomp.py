@@ -31,12 +31,17 @@ def initialise(
         init_pool.append(initialiser(base_model, compression_rate))
     return init_pool
 
-def calc_fitnesses(base_embeddings, pool, loss_fn, dataset, base_size, emb_layers):
-    batch_data, batch_labels = dataset[0], dataset[1]
+def calc_fitnesses(base_embeddings, pool, batch_data, batch_labels, base_size, emb_layers):
+
     fitnesses, accuracies, losses = [], [], []
+
+    # Initialize loss with base networks embeddings
+    # TODO right now only takes one layer
+    loss_fn = TSNELoss(base_embeddings[0])
+
     for model in pool:
         model_embeddings = get_embeddings(batch_data, model, emb_layers)
-        loss = loss_fn(model_embeddings[0])
+        loss = loss_fn(model_embeddings[0],  base_embeddings)
         accuracy = accuracy_measure(model, batch_data, batch_labels)
         compression = compression_measure(model, base_size)
         a, b, c = 1, 1, 1
@@ -80,7 +85,7 @@ def run_evolution(
     recomb_layers,
     n_inputs,
     n_outputs,
-    validation_dataset,
+    validation_loader,
 ):
 
     console = Console()
@@ -92,16 +97,11 @@ def run_evolution(
 
     console.log('Computing embeddings')
     # Get images from the dataset, ignore labels here
-    batch_data, _ = validation_dataset
+    batch_data, batch_labels = next(iter(validation_loader))
     # Get embeddings of base network
     base_embeddings = get_embeddings(batch_data, base_network, emb_layers)
     # Get total number of trainable parameters for base network
     base_size = sum(p.numel() for p in base_network.parameters() if p.requires_grad)
-
-    console.log('Initializing TSNE-based loss')
-    # Initialize loss with base networks embeddings
-    # TODO right now only takes one layer
-    emb_loss = TSNELoss(base_embeddings[0])
 
     avg_fitnesses = []
     console.log('Initializing population')
@@ -110,8 +110,8 @@ def run_evolution(
     fitnesses, avg_acc, best_acc, worst_acc, avg_loss, best_loss, worst_loss = calc_fitnesses(
         base_embeddings, 
         pop, 
-        emb_loss, 
-        validation_dataset, 
+        batch_data,
+        batch_labels, 
         base_size, 
         emb_layers
     )
@@ -126,6 +126,10 @@ def run_evolution(
 
     console.log('Starting optimization')
     while i < max_iter: #TODO: specify more convergence criteria
+        # Get images from the dataset, ignore labels here
+        batch_data, batch_labels = next(iter(validation_loader))
+        # Get embeddings of base network
+        base_embeddings = get_embeddings(batch_data, base_network, emb_layers)
         #print(f"Iteration {i+1}/{max_iter}\r", end='')
         pop = selector_and_breeder(pop, fitnesses, pop_size, recomb)
         pop = mutator(pop)
@@ -133,8 +137,8 @@ def run_evolution(
         fitnesses, avg_acc, best_acc, worst_acc, avg_loss, best_loss, worst_loss = calc_fitnesses(
             base_embeddings, 
             pop, 
-            emb_loss, 
-            validation_dataset, 
+            batch_data,
+            batch_labels, 
             base_size, 
             emb_layers
         )
@@ -149,6 +153,8 @@ def run_evolution(
         avg_fitnesses.append(avg_fitness)
         
         best_n = pop[best_i]
+
+
         i += 1
         pbar.update(i, [
             ('Avg', avg_fitness), 
