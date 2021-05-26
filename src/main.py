@@ -59,7 +59,7 @@ def main(run_idx:int=1):
         validation_loader=val_loader
     )
 
-    save_format = "%Y-%m-%d--%H:%M:%S"
+    save_format = "%Y_%m_%d__%H_%M_%S"
     save_name = datetime.now().strftime(save_format)
     save_name += f'_{run_idx}'
 
