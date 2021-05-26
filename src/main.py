@@ -1,3 +1,5 @@
+import sys
+
 from ecomp import run_evolution
 from configs import Configs
 from datetime import datetime
@@ -9,8 +11,7 @@ from rich.console import Console
 
 console = Console()
 
-if __name__=='__main__':
-
+def main(run_idx:int=1):
     train_loader, val_loader, dim_num = FashionMNISTLoader.get()
     n_classes = 10
 
@@ -43,6 +44,8 @@ if __name__=='__main__':
         LOSS_WEIGHTS=[0,2,1]
     )
 
+    console.print(configs)
+
     best_n, results = run_evolution(
         base_network,
         n_epochs=configs.EPOCHS,
@@ -58,7 +61,10 @@ if __name__=='__main__':
 
     save_format = "%Y-%m-%d--%H:%M:%S"
     save_name = datetime.now().strftime(save_format)
+    save_name += f'_{run_idx}'
 
+    print()
+    console.log('Evaluating best network')
     evaluateNetwork(best_n, val_loader)
     if SAVE_BEST:
         console.log('Saving best network')
@@ -75,3 +81,15 @@ if __name__=='__main__':
         )
     
     console.log('Done.')
+
+if __name__=='__main__':
+    try:
+        n_runs = int(sys.argv[1])
+        console.log(f'Creating {sys.argv[1]} total runs.')
+    except:
+        n_runs = 1
+        console.log('Creating single run.')
+
+    for run_idx in range(1,n_runs+1):
+        console.print(f'\n[yellow]Run {run_idx} of {n_runs}')
+        main(run_idx)

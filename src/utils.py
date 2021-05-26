@@ -1,4 +1,7 @@
 from time import time
+from rich.console import Console
+
+console = Console()
 
 def measure_exec_time(obj, *args, n_steps=100):
     """
@@ -33,7 +36,7 @@ def timer(func):
         start = time()
         results = func(*args, **kwargs)
         duration = time() - start
-        print("Function '{}' finished after {:.4f} seconds."\
+        console.print("Function [blue]{} [white]finished after {:.4f} seconds."\
               .format(func.__name__, duration))
         return results
     return wrapper

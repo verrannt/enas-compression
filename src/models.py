@@ -1,6 +1,9 @@
 import torch
 from torch import nn
 from collections import OrderedDict
+from rich.console import Console
+
+console = Console()
 
 def getSimpleNeuralNet(dim_num=784, n_hidden=256, n_classes=10):
     """
@@ -23,7 +26,7 @@ def getSimpleNeuralNet(dim_num=784, n_hidden=256, n_classes=10):
 
 def trainBaseNetwork(network, train_loader, val_loader, n_epochs=4):
 
-    print('Training base network')
+    console.log('Training base network')
 
     learning_rate = 1e-3
     loss_fn = nn.CrossEntropyLoss()
@@ -50,7 +53,6 @@ def trainBaseNetwork(network, train_loader, val_loader, n_epochs=4):
         
 def evaluateNetwork(network, val_loader):
 
-    print('Evaluating best network')
     print(network)
 
     size = len(val_loader.dataset)
@@ -65,4 +67,4 @@ def evaluateNetwork(network, val_loader):
 
     #test_loss /= size
     correct /= size
-    print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%\n")
+    console.print(f"[red]Test Accuracy: [white]{(100*correct):>0.1f}%")

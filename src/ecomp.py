@@ -151,7 +151,7 @@ def run_evolution(
     for epoch in range(n_epochs):
         i = 0
         pbar = Progbar(len(validation_loader))
-        print(f'\nEpoch {epoch+1}/{n_epochs}')
+        console.print(f'\n[blue]Epoch {epoch+1}/{n_epochs}')
         for batch_data, batch_labels in validation_loader:
 
             # Get embeddings of base network
@@ -196,7 +196,7 @@ def run_evolution(
                 #('Worst Comp', loss_dict['worst_comp']),
             ])
         del pbar
-
+    print()
     # TODO right now this returns the best network *of the last batch*
     # This may be the overall best but may also not be.
     return best_n, results
