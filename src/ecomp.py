@@ -8,8 +8,10 @@ from initialiser import Initialiser
 from embeddings import get_embeddings
 from measures import accuracy_measure, compression_measure, count_parameters
 from utils import timer
+from results import ResultsManager
 from tensorflow.keras.utils import Progbar
 from rich.console import Console
+
 
 def softmax(x):
     f_x = np.exp(x) / np.sum(np.exp(x))
@@ -52,31 +54,31 @@ def calc_fitnesses(base_embeddings, pool, batch_data, batch_labels, base_size, e
         accuracies.append(accuracy)
         losses.append(loss)
         comps.append(compression)
-    #print(np.unique(comps, return_counts=True))
-    #pool_fitnesses_zipped = list(zip(pool, fitnesses))
-    #avg_acc = np.average(accuracies)
-    #best_acc = accuracies[np.argmax(accuracies)]
-    #worst_acc = accuracies[np.argmin(accuracies)]
-    #avg_loss = np.average(losses)
-    #best_loss = losses[np.argmin(losses)]
-    #worst_loss = losses[np.argmax(losses)]
-    #avg_comp = np.average(comp)
-    #best_comp  = comps[np.argmin(comps)]
-    #worst_comp = comps[np.argmax(comps)]
 
     loss_dict = {
+        'fitnesses': fitnesses,
+        'accuracies': accuracies,
+        'losses': losses, 
+        'comps': comps,
+
+        'avg_fitness': np.average(fitnesses),
+        'best_fitness': np.max(fitnesses),
+        'worst_fitness': np.min(fitnesses),
+
         'avg_acc': np.average(accuracies),
-        'best_acc': accuracies[np.argmax(accuracies)],
-        'worst_acc': accuracies[np.argmin(accuracies)],
+        'best_acc': np.max(accuracies),
+        'worst_acc': np.min(accuracies),
+
         'avg_loss': np.average(losses),
-        'best_loss': losses[np.argmin(losses)],
-        'worst_loss': losses[np.argmax(losses)],
+        'best_loss': np.min(losses),
+        'worst_loss': np.max(losses),
+
         'avg_comp': np.average(comps),
-        'best_comp': comps[np.argmin(comps)],
-        'worst_comp': comps[np.argmax(comps)],
+        'best_comp': np.min(comps),
+        'worst_comp': np.max(comps),
     }
 
-    return fitnesses, accuracies, losses, comps, loss_dict, #avg_acc, best_acc, worst_acc, avg_loss, best_loss, worst_loss, avg_comp, best_comp, worst_comp
+    return loss_dict
 
 def selector_and_breeder(pop, fitnesses, mating_pool_size, recombiner):
     #pop, fitnesses = zip(*pop_fitnesses_zipped)
@@ -98,7 +100,7 @@ def selector_and_breeder(pop, fitnesses, mating_pool_size, recombiner):
 @timer
 def run_evolution(
     base_network, 
-    max_iter, 
+    n_epochs, 
     pop_size, 
     p_mut, 
     emb_layers,
@@ -124,11 +126,15 @@ def run_evolution(
     # Get total number of trainable parameters for base network
     base_size = count_parameters(base_network)
 
-    avg_fitnesses = []
+    results = ResultsManager()
+
     console.log('Initializing population')
     pop = initialise(initialiser, base_network, pop_size)
+
+    # Calculate fitnesses for the first run. The `loss_dict` holds the results
+    # of this single run and is overwritten each iteration.
     console.log('Computing initial population fitness')
-    fitnesses, accuracies, losses, comps, loss_dict = calc_fitnesses(
+    loss_dict = calc_fitnesses(
         base_embeddings, 
         pop, 
         batch_data,
@@ -137,29 +143,27 @@ def run_evolution(
         emb_layers,
         loss_weights,
     )
-    #pop, fitnesses = zip(*pop_fitnesses)
-    best_i = np.argmax(fitnesses)
-    best_f = fitnesses[best_i]
-    avg_fitnesses.append(np.average(fitnesses))
-    best_n = pop[best_i]
+
+    # Track results
+    results.add(loss_dict)
 
     console.log('Starting optimization')
-    n_epochs = 1
     for epoch in range(n_epochs):
         i = 0
-        pbar = Progbar(max_iter)
+        pbar = Progbar(len(validation_loader))
         print(f'\nEpoch {epoch+1}/{n_epochs}')
         for batch_data, batch_labels in validation_loader:
-        #while i < max_iter: #TODO: specify more convergence criteria
-            # Get images from the dataset
-            #batch_data, batch_labels = next(iter(validation_loader))
+
             # Get embeddings of base network
             base_embeddings = get_embeddings(batch_data, base_network, emb_layers)
-            #print(f"Iteration {i+1}/{max_iter}\r", end='')
-            pop = selector_and_breeder(pop, fitnesses, pop_size, recomb)
+            
+            # Create new population
+            pop = selector_and_breeder(pop, loss_dict['fitnesses'], pop_size, recomb)
             pop = mutator(pop)
 
-            fitnesses, accuracies, losses, comps, loss_dict = calc_fitnesses(
+            # Calculate fitnesses for this iteration. The `loss_dict` holds the
+            # results of this iteration only and is overwritten each iteration.
+            loss_dict = calc_fitnesses(
                 base_embeddings, 
                 pop, 
                 batch_data,
@@ -169,33 +173,30 @@ def run_evolution(
                 loss_weights,
             )
 
-            best_i = np.argmax(fitnesses)
-            best_f = fitnesses[best_i]
+            # Get best individual
+            best_i = np.argmax(loss_dict['fitnesses'])
+            best_n = pop[best_i]
             
-            best_acc_i = np.argmax(accuracies)
-
-            worst_i = np.argmin(fitnesses)
-            worst_f = fitnesses[worst_i]
-            
-            avg_fitness = np.average(fitnesses)
-            avg_fitnesses.append(avg_fitness)
-            
-            best_n = pop[best_acc_i]
+            # Track results        
+            results.add(loss_dict)
 
             i += 1
             pbar.update(i, [
-                ('Avg', avg_fitness), 
-                ('Best', best_f), 
-                ('Worst', worst_f), 
-                #('Avg Acc', loss_dict['avg_acc']), 
+                ('Fitness', loss_dict['avg_fitness']), 
+                #('Best', loss_dict['best_fitness']), 
+                #('Worst', loss_dict['worst_fitness']), 
+                ('Acc', loss_dict['avg_acc']), 
                 #('Best Acc', loss_dict['best_acc']), 
                 #('Worst Acc', loss_dict['worst_acc']),
-                ('Avg Loss', loss_dict['avg_loss']), 
-                ('Best Loss', loss_dict['best_loss']), 
-                ('Worst Loss', loss_dict['worst_loss']),
-                ('Avg Comp', loss_dict['avg_comp']), 
-                ('Best Comp', loss_dict['best_comp']), 
-                ('Worst Comp', loss_dict['worst_comp']),
+                ('Loss', loss_dict['avg_loss']), 
+                #('Best Loss', loss_dict['best_loss']), 
+                #('Worst Loss', loss_dict['worst_loss']),
+                ('Comp', loss_dict['avg_comp']), 
+                #('Best Comp', loss_dict['best_comp']), 
+                #('Worst Comp', loss_dict['worst_comp']),
             ])
         del pbar
-    return best_n, best_f, avg_fitnesses
+
+    # TODO right now this returns the best network *of the last batch*
+    # This may be the overall best but may also not be.
+    return best_n, results
