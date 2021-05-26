@@ -19,7 +19,7 @@ if __name__=='__main__':
         n_classes=n_classes,
     )
 
-    RETRAIN_BASE = True
+    RETRAIN_BASE = False
 
     if RETRAIN_BASE:
         # Train base network
@@ -48,7 +48,7 @@ if __name__=='__main__':
         recomb_layers=configs.RECOMBINATION_LAYERS,
         n_inputs=dim_num,
         n_outputs=n_classes,
-        validation_dataset=next(iter(val_loader))
+        validation_loader=val_loader
     )
 
     evaluateNetwork(best_n, val_loader)
