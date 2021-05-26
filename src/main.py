@@ -37,6 +37,7 @@ if __name__=='__main__':
         EMB_LAYERS=["layer_1_act", "layer_2_act"],
         RECOMBINATION_LAYERS=["layer_1_linear", "layer_2_linear", "output"],
         MAX_ITER=100,
+        LOSS_WEIGHTS=[0,2,1]
     )
 
     best_n, best_f, avg_fitnesses = run_evolution(
@@ -46,6 +47,7 @@ if __name__=='__main__':
         p_mut=configs.MUTATION_RATE,
         emb_layers=configs.EMB_LAYERS,
         recomb_layers=configs.RECOMBINATION_LAYERS,
+        loss_weights=configs.LOSS_WEIGHTS,
         n_inputs=dim_num,
         n_outputs=n_classes,
         validation_loader=val_loader

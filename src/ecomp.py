@@ -31,7 +31,7 @@ def initialise(
         init_pool.append(initialiser(base_model, compression_rate))
     return init_pool
 
-def calc_fitnesses(base_embeddings, pool, batch_data, batch_labels, base_size, emb_layers):
+def calc_fitnesses(base_embeddings, pool, batch_data, batch_labels, base_size, emb_layers, loss_weights):
 
     fitnesses, accuracies, losses, comps = [], [], [], []
 
@@ -45,8 +45,9 @@ def calc_fitnesses(base_embeddings, pool, batch_data, batch_labels, base_size, e
         loss = loss_fn(model_embeddings[0]) + loss_fn_2(model_embeddings[1])
         accuracy = accuracy_measure(model, batch_data, batch_labels)
         compression = compression_measure(model, base_size)
-        a, b, c = 0, 2, 1
-        fitness = a * accuracy - b * loss + c * (1-compression) #TODO: calculate fitness ??
+        fitness = loss_weights[0] * accuracy \
+                - loss_weights[1] * loss \
+                + loss_weights[2] * (1-compression)
         fitnesses.append(fitness)
         accuracies.append(accuracy)
         losses.append(loss)
@@ -102,6 +103,7 @@ def run_evolution(
     p_mut, 
     emb_layers,
     recomb_layers,
+    loss_weights,
     n_inputs,
     n_outputs,
     validation_loader,
@@ -132,7 +134,8 @@ def run_evolution(
         batch_data,
         batch_labels, 
         base_size, 
-        emb_layers
+        emb_layers,
+        loss_weights,
     )
     #pop, fitnesses = zip(*pop_fitnesses)
     best_i = np.argmax(fitnesses)
@@ -162,7 +165,8 @@ def run_evolution(
                 batch_data,
                 batch_labels, 
                 base_size, 
-                emb_layers
+                emb_layers,
+                loss_weights,
             )
 
             best_i = np.argmax(fitnesses)
