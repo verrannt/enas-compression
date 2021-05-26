@@ -6,7 +6,7 @@ class Configs():
         MUTATION_RATE,
         EMB_LAYERS,
         RECOMBINATION_LAYERS,
-        MAX_ITER,
+        EPOCHS,
         LOSS_WEIGHTS
     ):
 
@@ -14,7 +14,37 @@ class Configs():
         self.MUTATION_RATE = MUTATION_RATE
         self.EMB_LAYERS = EMB_LAYERS
         self.RECOMBINATION_LAYERS = RECOMBINATION_LAYERS
-        self.MAX_ITER = MAX_ITER
+        self.EPOCHS = EPOCHS
         # Weights for the different loss functions, in the following order:
         # Accuracy, Embedding loss, Compression loss
         self.LOSS_WEIGHTS = LOSS_WEIGHTS
+
+    def to_dict(self):
+        return {
+            'pop_size': self.POP_SIZE,
+            'mutation_rate': self.MUTATION_RATE,
+            'emb_layers': self.EMB_LAYERS,
+            'recomb_layers': self.RECOMBINATION_LAYERS,
+            'epochs': self.EPOCHS,
+            'loss_weights': self.LOSS_WEIGHTS,
+        }
+
+    @staticmethod
+    def from_dict(dict):
+        return Configs(
+            POP_SIZE = dict['pop_size'],
+            MUTATION_RATE = dict['mutation_rate'],
+            EMB_LAYERS = dict['emb_layers'],
+            RECOMBINATION_LAYERS = dict['recomb_layers'],
+            EPOCHS = dict['epochs'],
+            LOSS_WEIGHTS = dict['loss_weights'],
+        )
+
+    def __str__(self):
+        return "Configs: \n"\
+            f"    pop_size:\t\t{self.POP_SIZE}\n"\
+            f"    mutation_rate:\t{self.MUTATION_RATE}\n"\
+            f"    emb_layers:\t\t{self.EMB_LAYERS}\n"\
+            f"    recomb_layers:\t{self.RECOMBINATION_LAYERS}\n"\
+            f"    epochs:\t\t{self.EPOCHS}\n"\
+            f"    loss_weights:\t{self.LOSS_WEIGHTS}\n"
