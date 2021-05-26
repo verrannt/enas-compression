@@ -1,6 +1,6 @@
 from ecomp import run_evolution
 from configs import Configs
-
+from datetime import datetime
 import torch
 from models import getSimpleNeuralNet, trainBaseNetwork, evaluateNetwork
 from data.fashion_mnist import FashionMNISTLoader
@@ -52,3 +52,4 @@ if __name__=='__main__':
     )
 
     evaluateNetwork(best_n, val_loader)
+    torch.save(best_n.state_dict(), f'weights/best_net-{datetime.now()}.pth')
