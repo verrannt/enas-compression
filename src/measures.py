@@ -2,17 +2,10 @@ import torch
 
 def test_loop(data, labels, model):
     #device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    correct = 0
-    predictions = []
     with torch.no_grad():
-        # TODO Feed whole batch instead of iterating through it
         # TODO May need to put on device?
-        for X, y in zip(data,labels):
-            # Compute prediction and loss
-            pred = model(X)
-            predictions.append(pred)
-            correct += (pred.argmax() == y.argmax()).type(torch.float).sum().item()
-
+        predictions = model(data)
+        correct = (predictions.argmax(1) == labels).type(torch.float).sum().item()
     correct /= len(data)
     return correct
 
