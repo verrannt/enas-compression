@@ -118,12 +118,12 @@ class ResultsIO:
             'configs': configs.to_dict(),
             'results': results.to_dict(),
         }
-        with open(path+filename, 'w') as f:
+        with open(path+filename+'.json', 'w') as f:
             json.dump(save_dict, f)
 
     @staticmethod
     def load(path, filename):
-        with open(path+filename, 'r') as f:
+        with open(path+filename+'.json', 'r') as f:
             unparsed_dict = json.load(f)
 
         configs = Configs.from_dict(
