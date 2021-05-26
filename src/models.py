@@ -49,6 +49,10 @@ def trainBaseNetwork(network, train_loader, val_loader, n_epochs=4):
     return network
         
 def evaluateNetwork(network, val_loader):
+
+    print('Evaluating best network')
+    print(network)
+
     size = len(val_loader.dataset)
     test_loss, correct = 0, 0
     
