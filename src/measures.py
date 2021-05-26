@@ -10,7 +10,11 @@ def test_loop(data, labels, model):
     return correct
 
 def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    # NOTE right now we only take the number of neurons in one hidden layer.
+    # This works because both hidden layers have the same number of params.
+    # If in the future we train models with different layer sizes this has
+    # to be changed.
+    return model[1].weight.shape[0]
 
 def compression_measure(child_network, parent_size):
     child_size = count_parameters(child_network)
