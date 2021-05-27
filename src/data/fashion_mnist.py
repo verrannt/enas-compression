@@ -1,11 +1,13 @@
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, SubsetRandomSampler
 from torchvision import datasets
 from torchvision.transforms import ToTensor, Lambda
-from sampler import BalancedBatchSampler
+from torch import Generator, randperm
+
+
 
 class FashionMNISTLoader():
 
-    def get():
+    def get(train_size, test_size):
         """
         Get dataloaders for the FashionMNIST train and test set from the 
         PyTorch repositories, and return them together with the dimension 
@@ -27,18 +29,19 @@ class FashionMNISTLoader():
         )
 
         train_dataloader = DataLoader(
-            training_data, 
-            batch_size=100, 
+            training_data,
+            batch_size=100,
             # Shuffle is incompatible with BalancedBatchSampler
             #shuffle=True,
-            sampler=BalancedBatchSampler(training_data, training_data.targets)
+            sampler=SubsetRandomSampler(randperm(len(training_data))[:train_size], generator=Generator().manual_seed(42))
         )
+
         test_dataloader = DataLoader(
-            test_data, 
-            batch_size=100, 
+            test_data,
+            batch_size=100,
             # Shuffle is incompatible with BalancedBatchSampler
             #shuffle=True,
-            sampler=BalancedBatchSampler(test_data, test_data.targets)
+            sampler=SubsetRandomSampler(randperm(len(test_data))[:test_size], generator=Generator().manual_seed(43))
         )
 
         dim_num = training_data[0][0].size()[1] * training_data[0][0].size()[2]
