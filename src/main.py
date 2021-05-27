@@ -12,7 +12,7 @@ from rich.console import Console
 console = Console()
 
 def main(run_idx:int=1):
-    train_loader, val_loader, dim_num = FashionMNISTLoader.get()
+    train_loader, val_loader, dim_num = FashionMNISTLoader.get(train_size = 10000, test_size = 10000)
     n_classes = 10
 
     base_network = getSimpleNeuralNet(
@@ -56,7 +56,7 @@ def main(run_idx:int=1):
         loss_weights=configs.LOSS_WEIGHTS,
         n_inputs=dim_num,
         n_outputs=n_classes,
-        validation_loader=val_loader
+        train_loader=train_loader
     )
 
     save_format = "%Y_%m_%d__%H_%M_%S"
