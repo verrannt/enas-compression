@@ -107,7 +107,7 @@ def run_evolution(
     loss_weights,
     n_inputs,
     n_outputs,
-    validation_loader,
+    train_loader,
 ):
 
     console = Console()
@@ -119,7 +119,7 @@ def run_evolution(
 
     console.log('Computing embeddings')
     # Get images from the dataset, ignore labels here
-    batch_data, batch_labels = next(iter(validation_loader))
+    batch_data, batch_labels = next(iter(train_loader))
     # Get embeddings of base network
     base_embeddings = get_embeddings(batch_data, base_network, emb_layers)
     # Get total number of trainable parameters for base network
@@ -149,9 +149,9 @@ def run_evolution(
     console.log('Starting optimization')
     for epoch in range(n_epochs):
         i = 0
-        pbar = Progbar(len(validation_loader))
+        pbar = Progbar(len(train_loader))
         console.print(f'\n[blue]Epoch {epoch+1}/{n_epochs}')
-        for batch_data, batch_labels in validation_loader:
+        for batch_data, batch_labels in train_loader:
 
             # Get embeddings of base network
             base_embeddings = get_embeddings(batch_data, base_network, emb_layers)
@@ -199,7 +199,10 @@ def run_evolution(
     #Compute final fitnesses
     console.print('Computing final fitnesses')
     final_fitnesses = []
-    for batch_data, batch_labels in validation_loader:
+
+    i = 0
+    pbar = Progbar(len(train_loader))
+    for batch_data, batch_labels in train_loader:
         # Get embeddings of base network
         base_embeddings = get_embeddings(batch_data, base_network, emb_layers)
         loss_dict = calc_fitnesses(
@@ -212,7 +215,10 @@ def run_evolution(
             loss_weights,
         )
         final_fitnesses.append(loss_dict['fitnesses'])
+        i += 1
+        pbar.update(i)
 
+    del pbar
     avg_losses = np.average(final_fitnesses, axis=0)
 
     # get best individual
