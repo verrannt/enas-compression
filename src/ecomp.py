@@ -38,7 +38,6 @@ def calc_fitnesses(base_embeddings, pool, batch_data, batch_labels, base_size, e
     fitnesses, accuracies, losses, comps = [], [], [], []
 
     # Initialize loss with base networks embeddings
-    # TODO right now only takes one layer
     loss_fn = TSNELoss(base_embeddings[0])
     loss_fn_2 = TSNELoss(base_embeddings[1])
 
@@ -196,7 +195,29 @@ def run_evolution(
                 #('Worst Comp', loss_dict['worst_comp']),
             ])
         del pbar
+
+    #Compute final fitnesses
+    console.print('Computing final fitnesses')
+    final_fitnesses = []
+    for batch_data, batch_labels in validation_loader:
+        # Get embeddings of base network
+        base_embeddings = get_embeddings(batch_data, base_network, emb_layers)
+        loss_dict = calc_fitnesses(
+            base_embeddings,
+            pop,
+            batch_data,
+            batch_labels,
+            base_size,
+            emb_layers,
+            loss_weights,
+        )
+        final_fitnesses.append(loss_dict['fitnesses'])
+
+    avg_losses = np.average(final_fitnesses, axis=0)
+
+    # get best individual
+    best_i = np.argmax(avg_losses)
+    best_n = pop[best_i]
+
     print()
-    # TODO right now this returns the best network *of the last batch*
-    # This may be the overall best but may also not be.
     return best_n, results
