@@ -68,3 +68,5 @@ def evaluateNetwork(network, val_loader):
     #test_loss /= size
     correct /= size
     console.print(f"[red]Test Accuracy: [white]{(100*correct):>0.1f}%")
+
+    return correct

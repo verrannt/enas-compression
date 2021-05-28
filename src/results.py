@@ -112,11 +112,18 @@ class ResultsManager:
 class ResultsIO:
 
     @staticmethod
-    def save(path, filename, configs, results):
+    def save(
+        path, 
+        filename, 
+        configs, 
+        results, 
+        best_test_acc
+    ):
         save_dict = {
             'name': filename,
             'configs': configs.to_dict(),
             'results': results.to_dict(),
+            'best_test_acc': best_test_acc
         }
         with open(path+filename+'.json', 'w') as f:
             json.dump(save_dict, f)
@@ -133,4 +140,6 @@ class ResultsIO:
             unparsed_dict['results']
         )
 
-        return configs, results
+        best_test_acc = unparsed_dict['best_test_acc']
+
+        return configs, results, best_test_acc

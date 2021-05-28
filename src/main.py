@@ -65,7 +65,7 @@ def main(run_idx:int=1):
 
     print()
     console.log('Evaluating best network')
-    evaluateNetwork(best_n, val_loader)
+    best_test_acc = evaluateNetwork(best_n, val_loader)
     if SAVE_BEST:
         console.log('Saving best network')
         torch.save(best_n.state_dict(), f'weights/best_net-{save_name}.pth')
@@ -78,6 +78,7 @@ def main(run_idx:int=1):
             filename = save_name,
             configs = configs,
             results = results,
+            best_test_acc = best_test_acc
         )
     
     console.log('Done.')
