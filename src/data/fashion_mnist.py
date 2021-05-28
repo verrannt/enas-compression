@@ -33,7 +33,10 @@ class FashionMNISTLoader():
             batch_size=100,
             # Shuffle is incompatible with BalancedBatchSampler
             #shuffle=True,
-            sampler=SubsetRandomSampler(randperm(len(training_data))[:train_size], generator=Generator().manual_seed(42))
+            sampler=SubsetRandomSampler(
+                randperm(len(training_data))[:train_size], 
+                generator=Generator().manual_seed(42)
+            )
         )
 
         test_dataloader = DataLoader(
@@ -41,7 +44,10 @@ class FashionMNISTLoader():
             batch_size=100,
             # Shuffle is incompatible with BalancedBatchSampler
             #shuffle=True,
-            sampler=SubsetRandomSampler(randperm(len(test_data))[:test_size], generator=Generator().manual_seed(43))
+            sampler=SubsetRandomSampler(
+                randperm(len(test_data))[:test_size], 
+                generator=Generator().manual_seed(43)
+            )
         )
 
         dim_num = training_data[0][0].size()[1] * training_data[0][0].size()[2]

@@ -154,10 +154,15 @@ def run_evolution(
         for batch_data, batch_labels in train_loader:
 
             # Get embeddings of base network
-            base_embeddings = get_embeddings(batch_data, base_network, emb_layers)
+            base_embeddings = get_embeddings(
+                batch_data, 
+                base_network, 
+                emb_layers
+            )
             
             # Create new population
-            pop = selector_and_breeder(pop, loss_dict['fitnesses'], pop_size, recomb)
+            pop = selector_and_breeder(
+                pop, loss_dict['fitnesses'], pop_size, recomb)
             pop = mutator(pop)
 
             # Calculate fitnesses for this iteration. The `loss_dict` holds the
@@ -181,7 +186,7 @@ def run_evolution(
 
             i += 1
             pbar.update(i, [
-                ('Fitness', loss_dict['avg_fitness']), 
+                ('Fit', loss_dict['avg_fitness']), 
                 #('Best', loss_dict['best_fitness']), 
                 #('Worst', loss_dict['worst_fitness']), 
                 ('Acc', loss_dict['avg_acc']), 
@@ -204,7 +209,11 @@ def run_evolution(
     pbar = Progbar(len(train_loader))
     for batch_data, batch_labels in train_loader:
         # Get embeddings of base network
-        base_embeddings = get_embeddings(batch_data, base_network, emb_layers)
+        base_embeddings = get_embeddings(
+            batch_data, 
+            base_network, 
+            emb_layers
+        )
         loss_dict = calc_fitnesses(
             base_embeddings,
             pop,

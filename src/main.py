@@ -12,7 +12,10 @@ from rich.console import Console
 console = Console()
 
 def main(run_idx:int=1):
-    train_loader, val_loader, dim_num = FashionMNISTLoader.get(train_size = 10000, test_size = 10000)
+    train_loader, val_loader, dim_num = FashionMNISTLoader.get(
+        train_size = 10000, 
+        test_size = 10000
+    )
     n_classes = 10
 
     base_network = getSimpleNeuralNet(
