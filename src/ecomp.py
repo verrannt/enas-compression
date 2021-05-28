@@ -202,7 +202,7 @@ def run_evolution(
         del pbar
 
     #Compute final fitnesses
-    console.print('Computing final fitnesses')
+    console.log('Computing final fitnesses')
     final_fitnesses = []
 
     i = 0
