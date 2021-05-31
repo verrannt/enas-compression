@@ -90,7 +90,7 @@ class ResultsManager:
     def compute_metrics_string(self, list):
         return f"{len(list)} values, min: {np.min(list):.3f}, max: {np.max(list):.3f}, mean: {np.mean(list):2.3f}"
 
-    def __str__(self):
+    def __repr__(self):
         return "Results:\n"\
         f"    Fitness:\n"\
         f"        Averages: {self.compute_metrics_string(self.fitness.averages)}\n"\

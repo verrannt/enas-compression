@@ -40,11 +40,11 @@ class Configs():
             LOSS_WEIGHTS = dict['loss_weights'],
         )
 
-    def __str__(self):
+    def __repr__(self):
         return "Configs: \n"\
-            f"    pop_size:\t\t{self.POP_SIZE}\n"\
-            f"    mutation_rate:\t{self.MUTATION_RATE}\n"\
-            f"    emb_layers:\t\t{self.EMB_LAYERS}\n"\
-            f"    recomb_layers:\t{self.RECOMBINATION_LAYERS}\n"\
-            f"    epochs:\t\t{self.EPOCHS}\n"\
-            f"    loss_weights:\t{self.LOSS_WEIGHTS}\n"
+            f"    pop_size:       {self.POP_SIZE}\n"\
+            f"    mutation_rate:  {self.MUTATION_RATE}\n"\
+            f"    emb_layers:     {self.EMB_LAYERS}\n"\
+            f"    recomb_layers:  {self.RECOMBINATION_LAYERS}\n"\
+            f"    epochs:         {self.EPOCHS}\n"\
+            f"    loss_weights:   {self.LOSS_WEIGHTS}\n"
