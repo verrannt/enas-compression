@@ -11,7 +11,10 @@ from rich.console import Console
 
 console = Console()
 
-def main(run_idx:int=1):
+def main(
+    run_idx:int = 1, 
+    exp_name:str = 'unnamed'
+):
     train_loader, val_loader, dim_num = FashionMNISTLoader.get(
         train_size = 10000, 
         test_size = 10000
@@ -62,8 +65,9 @@ def main(run_idx:int=1):
         train_loader=train_loader
     )
 
-    save_format = "%Y_%m_%d__%H_%M_%S"
+    save_format = "%Y-%m-%d_%H-%M-%S"
     save_name = datetime.now().strftime(save_format)
+    save_name += f'_{exp_name}'
     save_name += f'_{run_idx}'
 
     print()
@@ -71,7 +75,7 @@ def main(run_idx:int=1):
     best_test_acc = evaluateNetwork(best_n, val_loader)
     if SAVE_BEST:
         console.log('Saving best network')
-        torch.save(best_n.state_dict(), f'weights/best_net-{save_name}.pth')
+        torch.save(best_n.state_dict(), f'weights/best-net_{save_name}.pth')
 
     # Save results
     if SAVE_RESULTS:
@@ -89,11 +93,15 @@ def main(run_idx:int=1):
 if __name__=='__main__':
     try:
         n_runs = int(sys.argv[1])
+        exp_name = sys.argv[2]
         console.log(f'Creating {sys.argv[1]} total runs.')
     except:
-        n_runs = 1
-        console.log('Creating single run.')
+        raise ValueError(
+            'Failed to read arguments. Please ensure that you called the '
+            'script in the following manner: \n'
+            '$ python src/main.py <n_runs> <exp_name>'
+        )
 
     for run_idx in range(1,n_runs+1):
         console.print(f'\n[yellow]Run {run_idx} of {n_runs}')
-        main(run_idx)
+        main(run_idx, exp_name)
