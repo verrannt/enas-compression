@@ -12,6 +12,7 @@ from results import ResultsManager
 from tensorflow.keras.utils import Progbar
 from rich.console import Console
 
+console = Console()
 
 def softmax(x):
     f_x = np.exp(x) / np.sum(np.exp(x))
@@ -109,8 +110,6 @@ def run_evolution(
     n_outputs,
     train_loader,
 ):
-
-    console = Console()
 
     console.log('Initializing algorithm')
     recomb = Recombiner(recomb_layers, n_inputs, n_outputs)
