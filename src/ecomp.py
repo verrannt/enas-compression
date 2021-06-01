@@ -11,6 +11,8 @@ from utils import timer
 from results import ResultsManager
 from tensorflow.keras.utils import Progbar
 from rich.console import Console
+from multiprocessing import Pool, cpu_count
+from copy import deepcopy
 
 console = Console()
 
@@ -34,7 +36,48 @@ def initialise(
         init_pool.append(initialiser(base_model, compression_rate))
     return init_pool
 
-def calc_fitnesses(base_embeddings, pool, batch_data, batch_labels, base_size, emb_layers, loss_weights):
+def fitness_loop(iter):
+    """
+    Job to be put on a thread when using parallel processing, that runs
+    the fitness loop over a subset of the whole model pool.
+    """
+    console.log("Started job")
+    subpool, args = iter
+    batch_data, batch_labels, base_size, \
+        emb_layers, loss_fn, loss_fn_2, loss_weights = args
+    
+    fitnesses, accuracies, losses, comps = [], [], [], []
+
+    for i,model in enumerate(subpool):
+        print(f"{i+1}/{len(subpool)}")
+        model_embeddings = get_embeddings(batch_data, model, emb_layers)
+        print('got embeddings')
+        loss = loss_fn(model_embeddings[0]) + loss_fn_2(model_embeddings[1])
+        print('got loss')
+        accuracy = accuracy_measure(model, batch_data, batch_labels)
+        print('got acc')
+        compression = compression_measure(model, base_size)
+        print('got comp')
+        fitness = loss_weights[0] * accuracy \
+                - loss_weights[1] * loss \
+                + loss_weights[2] * (1-compression)
+        print('got fits')
+        fitnesses.append(fitness)
+        accuracies.append(accuracy)
+        losses.append(loss)
+        comps.append(compression)
+
+    return (fitnesses, accuracies, losses, comps)
+
+def calc_fitnesses(
+    base_embeddings, 
+    pool, 
+    batch_data, 
+    batch_labels, 
+    base_size, 
+    emb_layers, 
+    loss_weights
+):
 
     fitnesses, accuracies, losses, comps = [], [], [], []
 
@@ -42,6 +85,40 @@ def calc_fitnesses(base_embeddings, pool, batch_data, batch_labels, base_size, e
     loss_fn = TSNELoss(base_embeddings[0])
     loss_fn_2 = TSNELoss(base_embeddings[1])
 
+
+    # NOTE This code is deactivated, as parallel processing is currently
+    # de-functional. 
+    parrallel_processing = False
+    if False:
+        n_cores = cpu_count()
+        cut = len(pool)//4
+        args = [
+            batch_data, 
+            batch_labels, 
+            base_size, 
+            emb_layers, 
+            loss_fn,
+            loss_fn_2,
+            loss_weights
+        ]
+
+        iterable = [
+            (pool[     :  cut], deepcopy(args)),
+            (pool[  cut:2*cut], deepcopy(args)),
+            (pool[2*cut:3*cut], deepcopy(args)),
+            (pool[3*cut:     ], deepcopy(args)),
+        ]
+        pool = Pool(processes=4)
+        targets = pool.map(job, iterable)
+        pool.close()
+
+        for ll in targets:
+            fitnesses.extend(ll[0])
+            accuracies.extend(ll[1])
+            losses.extend(ll[2])
+            comps.extend(ll[3])
+
+    #else:
     for model in pool:
         model_embeddings = get_embeddings(batch_data, model, emb_layers)
         loss = loss_fn(model_embeddings[0]) + loss_fn_2(model_embeddings[1])
