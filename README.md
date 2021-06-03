@@ -35,16 +35,16 @@ Before running this library, make sure you install the necessary requirements wi
 pip install -r requirements.txt
 ```
 
-### Running experiment
+### Running experiments
 
 Please run everything from the root of this repository to ensure saving works correctly. Assuming you have configured the `Configs` in `main.py` or left them at their default values, you can now run experiments using the following scheme:
 
 ```sh
 python src/main.py <n_runs> <experiment_name>
 ```
-`n_runs` denotes the number of runs you want to execute the experiment. Pass `1` to try it out, but to collect results you should use a higher number, like `10`, such that randomly bad results can be averaged out. These tend to occure frequently due to the random initialisation of compressed networks, but we found that in 10 runs we usually only find 1 or 2 outliers. 
+`n_runs` denotes the number of runs you want to execute the experiment. Pass `1` to try it out, but to collect results you should use a higher number, like `10`, such that randomly bad results can be averaged out. These tend to occur frequently due to the random initialisation of compressed networks, but we found that in 10 runs we usually only find 1 or 2 outliers. 
 
-All experiments are automatically save. Therefore, provide the `experiment_name` of your choice when calling the script.
+All experiments are automatically saved. Therefore, provide the `experiment_name` of your choice when calling the script.
 
 A full example of an experiment we conducted for our report thus looks like this:
 
@@ -54,7 +54,7 @@ python src/main.py 10 weighting121
 
 ## Shortcomings
 
-We note that EComp has only been tested as a proof-of-work on simple two-layer feed-forward neural networks, trained on the FashionMNIST dataset. Although the results are very promising, we cannot predict how well they transfer to larger, more complex network architectures like CNNs, or more difficult datasets. 
+We note that EComp has only been tested as a proof-of-work on simple two-layer feed-forward neural networks using the FashionMNIST dataset. Although the results are very promising, we cannot predict how well they transfer to larger, more complex network architectures like CNNs, or more difficult datasets. 
 
 If you find EComp interesting and would like to use it or build on it, please let us now in the Issues section. 
 
