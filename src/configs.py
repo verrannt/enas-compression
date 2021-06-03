@@ -9,11 +9,15 @@ class Configs():
         EPOCHS,
         LOSS_WEIGHTS
     ):
-
+        # Size of the population of compressed networks to optimize
         self.POP_SIZE = POP_SIZE
+        # Chance of random mutation at each iteration of the algorithm
         self.MUTATION_RATE = MUTATION_RATE
+        # Which layers to use when computing the similarity loss
         self.EMB_LAYERS = EMB_LAYERS
+        # Which layers to use for the recombiner
         self.RECOMBINATION_LAYERS = RECOMBINATION_LAYERS
+        # Number of epochs to run the optimization for
         self.EPOCHS = EPOCHS
         # Weights for the different loss functions, in the following order:
         # Accuracy, Embedding loss, Compression loss
