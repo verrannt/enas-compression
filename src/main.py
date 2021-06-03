@@ -65,9 +65,9 @@ def main(
         train_loader=train_loader
     )
 
-    save_format = "%Y-%m-%d_%H-%M-%S"
+    save_format = "%Y-%m-%d"
     save_name = datetime.now().strftime(save_format)
-    save_name += f'_{exp_name}'
+    save_name += f'_lossweights{exp_name}'
     save_name += f'_{run_idx}'
 
     print()
