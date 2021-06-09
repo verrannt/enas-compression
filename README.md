@@ -10,7 +10,7 @@ Starting from some parent network you would like to compress, EComp uses an evol
 
 We show that a multiobjective fitness function yields the best results in achieving a balance between test accuracy and compressed size when we employ the similarity loss, as compared to fitness functions that rely solely on accuracy and/or compression rate. For an in-depth description of our experimental findings, please see our report. 
 
-## Hot to use it
+## How to use it
 
 The main library is executable via the `main.py` file. It currently runs optimizations on the FashionMNIST dataset. The hyperparameters can be configured inside `main.py` using the `Configs` object. The default values as defined in `main.py` and used for our experiments are:
 
