@@ -8,7 +8,7 @@ Starting from some parent network you would like to compress, EComp uses an evol
 
 ## What is our contribution?
 
-We show that a multiobjective fitness function yields the best results in achieving a balance between test accuracy and compressed size when we employ the similarity loss, as compared to fitness functions that rely solely on accuracy and/or compression rate. For an in-depth description of our experimental findings, please see our report. 
+We show that a multiobjective fitness function yields the best results in achieving a balance between test accuracy and compressed size when we employ the similarity loss, as compared to fitness functions that rely solely on accuracy and/or compression rate. For an in-depth description of our experimental findings, please see [our report](report.pdf). 
 
 ## How to use it
 
