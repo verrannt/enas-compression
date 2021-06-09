@@ -67,10 +67,13 @@ Below is a rough example of how this would look in practice:
 ```py
 # Get the embeddings for a batch of data from the origin network
 origin_embeddings = # output of hidden layer in origin network
+
 # Instantiate the loss function with origin embeddings
 sim_loss = TSNELoss(origin_embeddings)
+
 # Get the embeddings for the same data from the compressed network
 compressed_embeddings = # output of hidden layer in compressed network
+
 # Get a single scalar loss value, corresponding to the informational 
 # similarity of the compressed networks hidden layer to that of the 
 # origin network
