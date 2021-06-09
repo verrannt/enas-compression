@@ -4,7 +4,7 @@ In this repository we implement a novel evolutionary algorithm, EComp, for compr
 
 ## What does it do?
 
-Starting from some parent network you would like to compress, EComp uses an evolutionary strategy with a multiobjective fitness function to search for neural architectures that are smaller in size (i.e. number of nodes in hidden layers). At the heart of this fitness function is the *similarity loss*, a custom loss objective inspired by t-SNE that quantifies the quality of a compressed network's hidden representations as compared to that of the parent network. 
+Starting from some parent network you would like to compress, EComp uses an evolutionary strategy with a multiobjective fitness function to search for neural architectures that are smaller in size (i.e. number of nodes in hidden layers). At the heart of this fitness function is the *similarity loss*, a custom loss objective inspired by [t-SNE](https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding) that quantifies the quality of a compressed network's hidden representations as compared to that of the parent network. 
 
 ## What is our contribution?
 
@@ -55,6 +55,27 @@ python src/main.py 10 weighting121
 Here is a preview of running it in a terminal:
 
 ![Preview](preview.png)
+
+## Similarity loss
+
+The t-SNE inspired similarity loss is implemented as a class `TSNELoss` in `src/losses.py`. It needs to be instantiated with the embeddings of the origin network, which are the outputs obtained from a certain layer in the network for data fed into the network. Suppose you have 500 datapoints of irrelevant shape, and 256 neurons in the networks first hidden layer, the output of the first layer (the embeddings) should be of shape `(500,256)`. Thus, this would be the shape required of the embeddings fed to the init method of `TSNELoss`.
+
+Once the loss is instantiated, you can simply call it with the compressed network's embeddings, similarly obtained. The requirement here is that you have the same datapoints, as otherwise comparing embeddings does not make sense. It is however *not* required for the embeddings to have the same shape as the origin's in the second dimension, as only the amount of datapoints has to fit. Thus, to stick with our example from above, you may obtain embeddings from a compressed network with 128 neurons in its first hidden layer, which are consequently of shape `(500,128)`.
+
+Below is a rough example of how this would look in practice:
+
+```py
+# Get the embeddings for a batch of data from the origin network
+origin_embeddings = # output of hidden layer in origin network
+# Instantiate the loss function with origin embeddings
+sim_loss = TSNELoss(origin_embeddings)
+# Get the embeddings for the same data from the compressed network
+compressed_embeddings = # output of hidden layer in compressed network
+# Get a single scalar loss value, corresponding to the informational 
+# similarity of the compressed networks hidden layer to that of the 
+# origin network
+loss_value = sim_losS(compressed_embeddings)
+```
 
 ## Shortcomings
 
