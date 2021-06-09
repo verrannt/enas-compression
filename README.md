@@ -52,6 +52,10 @@ A full example of an experiment we conducted for our report thus looks like this
 python src/main.py 10 weighting121
 ```
 
+Here is a preview of running it in a terminal:
+
+![Preview](preview.png)
+
 ## Shortcomings
 
 We note that EComp has only been tested as a proof-of-work on simple two-layer feed-forward neural networks using the FashionMNIST dataset. Although the results are very promising, we cannot predict how well they transfer to larger, more complex network architectures like CNNs, or more difficult datasets. 
