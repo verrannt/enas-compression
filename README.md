@@ -1,4 +1,4 @@
-# ENAS Compression
+# EComp: Evolutionary Compression of Neural Networks Using a Novel Similarity Objective 
 
 In this repository we implement a novel evolutionary algorithm, EComp, for compressing neural networks. It also includes testing facilities to investigate the resulting compressed networks and the values obtained during optimization. 
 
