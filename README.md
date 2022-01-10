@@ -91,5 +91,5 @@ This project is licensed under the GNU General Public License v3.0.
 ## Authors
 
 * Thijme de Valk ([tdevalk](https://github.com/tdevalk))
-* Stijn van den Beemt ([Tinusdabest](https://github.com/Tinusdabest))
+* Stijn van den Beemt ([Stijnradboud](https://github.com/Stijnradboud))
 * Pascal Schröder ([verrannt](https://github.com/verrannt))
